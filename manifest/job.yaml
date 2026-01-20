@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: count2
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - name: job
+          image: docker.io/busybox:1.37.0-musl
+          command:
+            - sh
+            - -c
+            - |
+              i=0
+              while [ $i -ne 50 ]
+              do
+                i=$(($i+1))
+                echo "$i"
+                sleep 1
+              done
+      restartPolicy: Never
+  backoffLimit: 1

@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: this-must-work
+  namespace: default
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: playwright-results
+          persistentVolumeClaim:
+            claimName: playwright-results
+      containers:
+        - name: job
+          image: localhost:5001/playwright:1
+          command:
+            - sh
+            - -c
+            - |
+              npx playwright test --reporter=html --trace on
+          env:
+            - name: K8S_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: PLAYWRIGHT_HTML_OPEN
+              value: never
+            - name: PLAYWRIGHT_HTML_OUTPUT_DIR
+              value: /playwright-results/$(K8S_UID)/
+          volumeMounts:
+            - mountPath: /playwright-results
+              name: playwright-results
+

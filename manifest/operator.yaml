@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator
+  labels:
+    app: operator
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: operator
+  template:
+    metadata:
+      labels:
+        app: operator
+    spec:
+      serviceAccountName: operator
+      containers:
+        - name: dashboard
+          image: localhost:5001/operator/dashboard
+          ports:
+            - containerPort: 3000
+              name: dashboard
+          env:
+            - name: DEFAULT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - mountPath: /playwright-results
+              name: playwright-results
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /
+              port: dashboard
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /
+              port: dashboard
+            periodSeconds: 10
+        - name: api
+          image: localhost:5001/operator/api
+          ports:
+            - containerPort: 8080
+              name: api
+          env:
+            - name: DEFAULT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /healthz
+              port: api
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /healthz
+              port: api
+            periodSeconds: 10
+      volumes:
+        - name: playwright-results
+          persistentVolumeClaim:
+            claimName: playwright-results

@@ -1,0 +1,72 @@
+<!-- templates/job_details.html -->
+<div>
+    <h3 class="mb-3">Job {{ .Job.ObjectMeta.Name }}</h3>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card p-3">
+                <strong>Containers</strong>
+                {{ if .Pods }}
+                    {{ range .Pods }}
+                        {{ range .Spec.Containers }}
+                            <div>{{ .Image }}</div>
+                            <div>{{ .Command }}</div>
+                        {{ end }}
+                    {{ end }}
+                {{ end }}
+
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <strong>Timing</strong>
+                <div>Start: {{ .Start }}</div>
+                <div>Finish: {{ .Finish }}</div>
+                <div>Duration: {{ .Duration }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <strong>Status</strong>
+                <div>Active: {{ .Job.Status.Active }}</div>
+                <div>Succeeded: {{ .Job.Status.Succeeded }}</div>
+                <div>Failed: {{ .Job.Status.Failed }}</div>
+            </div>
+        </div>
+    </div>
+
+
+    <h4 class="mb-2">Pods</h4>
+    {{ if .Pods }}
+    <div class="list-group">
+        {{ range .Pods }}
+        <div class="list-group-item">
+            <div class="fw-semibold">{{ .ObjectMeta.Name }}</div>
+            <small class="text-muted">Status: {{ .Status.Phase }}</small>
+            <button class="btn btn-sm btn-primary mt-2"
+                    hx-get="/frontend/pod/logs?namespace={{ $.Job.ObjectMeta.Namespace }}&pod={{ .ObjectMeta.Name }}"
+                    hx-target="#pod-logs-{{ .ObjectMeta.UID }}"
+                    hx-on="click:
+                        if (this.innerText === 'Show Logs') {
+                            this.innerText = 'Hide Logs';
+                        } else {
+                            this.innerText = 'Show Logs';
+                        }"
+            >
+                Show Logs
+            </button>
+            </button>
+            <a class="btn btn-sm btn-primary mt-2"
+               href="/pw/{{ .ObjectMeta.UID }}/index.html"
+               target="_blank"
+               rel="noopener noreferrer">
+                Open Playwright Report
+            </a>
+        </div>
+        <div id="pod-logs-{{ .ObjectMeta.UID }}"></div>
+        <div id="playwright-report-{{ .ObjectMeta.UID }}" class="mt-3"></div>
+        {{ end }}
+    </div>
+    {{ else }}
+    <div class="text-muted">No pods associated with this job.</div>
+    {{ end }}
+</div>

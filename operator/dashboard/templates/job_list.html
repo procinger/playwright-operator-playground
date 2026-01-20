@@ -1,0 +1,26 @@
+<!-- templates/job_list.html -->
+{{/* Renders list of jobs as Bootstrap list-group items */}}
+{{ range . }}
+<a
+        href="#"
+        hx-get="/frontend/job/details"
+        hx-target="#job-details"
+        hx-include="#namespace-input"
+        hx-vals='{"namespace": "{{.Metadata.Namespace}}", "name": "{{.Metadata.Name}}"}'
+        {{ if .Status.Failed }}
+        class="list-group-item-action alert alert-danger"
+        {{ end }}
+        {{ if .Status.Succeeded }}
+        class="list-group-item-action alert alert-success"
+        {{ end }}
+        {{ if .Status.Active }}
+        class="list-group-item-action alert alert-primary"
+        {{ end }}
+
+>
+    <div class="fw-bold">{{ .Metadata.Name }}</div>
+    <small class="text-muted">{{ .Metadata.CreationTimestamp }}</small>
+</a>
+{{ else }}
+<div class="text-muted">No jobs found in this namespace.</div>
+{{ end }}
